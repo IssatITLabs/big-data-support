@@ -1,0 +1,32 @@
+[
+    {
+        "USERNAME": "etudiant1@univ.com",
+        "PW": "pass123",
+        "TOTPOINTS": 15,
+        "PHOTO": "https://i.pravatar.cc/150?img=1"
+    },
+    {
+        "USERNAME": "etudiant2@univ.com",
+        "PW": "pass456",
+        "TOTPOINTS": 25,
+        "PHOTO": "https://i.pravatar.cc/150?img=2"
+    },
+    {
+        "USERNAME": "etudiant3@univ.com",
+        "PW": "pass789",
+        "TOTPOINTS": 5,
+        "PHOTO": "https://i.pravatar.cc/150?img=3"
+    },
+    {
+        "USERNAME": "etudiant4@univ.com",
+        "PW": "nouveau",
+        "TOTPOINTS": 0,
+        "PHOTO": "https://i.pravatar.cc/150?img=4"
+    },
+    {
+        "USERNAME": "etudiant5@univ.com",
+        "PW": "profsup",
+        "TOTPOINTS": 42,
+        "PHOTO": "https://i.pravatar.cc/150?img=5"
+    }
+]

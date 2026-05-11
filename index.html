@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SQL – Langage d'Interrogation des BD</title>
+<style>
+
+/* AUGMENTATION DE L'INTERLIGNE DU CORPS */
+body{margin:0;font-family:Arial, sans-serif;background:#f4f7fb;padding:20px;color:#0b2738; line-height: 1.6;}
+.container{max-width:1000px;margin:0 auto}
+.card{
+    background:white;
+    padding:18px;
+    margin:15px 0;
+    border-radius:8px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    border-left:6px solid #0b7285;
+    scroll-margin-top: 70px; 
+}
+h1,h2{color:#0b7285;margin:0 0 10px 0}
+/* INTERLIGNE RÉDUIT POUR LES BLOCS DE CODE */
+pre{white-space:pre-wrap;word-wrap:break-word;font-family:inherit; line-height: 1.4;}
+.small{font-size:0.9em;color:#475569}
+
+/* --- STYLES CODE BLOCK ET BOUTON COPIER --- */
+.code-container {
+    position: relative;
+    margin-bottom: 15px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+}
+.code-block {
+    width: 100%;
+    border: none;
+    resize: none;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    color: #333;
+    overflow-x: auto;
+}
+.copy-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 5px 10px;
+    background-color: #0b7285;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    opacity: 0.9;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+.copy-button:hover {
+    background-color: #085f6e;
+    opacity: 1;
+}
+.copy-button:active {
+    background-color: #053b47;
+}
+
+/* Dark mode compatibility for code blocks */
+body.dark-mode .code-container {
+    background: #2a3547;
+    border-color: #3e4c63;
+}
+body.dark-mode .code-block {
+    color: #e2e8f0;
+}
+/* --- FIN STYLES CODE BLOCK --- */
+
+
+/* --- STYLES D'AUTHENTIFICATION --- */
+/* Cache le contenu principal jusqu'à l'authentification */
+#main-wrapper {
+    display: none;
+    transition: opacity 0.5s;
+}
+.login-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0b2738;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+.login-box {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    width: 300px;
+    text-align: center;
+}
+.login-box input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.login-box button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0b7285;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.login-box p#error-message {
+    color: #dc3545;
+    margin-top: 10px;
+    font-weight: bold;
+    display: none;
+}
+/* --- FIN STYLES D'AUTHENTIFICATION --- */
+
+/* Dark mode styles */
+body.dark-mode{background:#0f172a;color:#f1f5f9}
+body.dark-mode .card{background:#1e293b;color:#f1f5f9;border-left-color:#38bdf8}
+body.dark-mode nav{background:#083344}
+body.dark-mode #sidebar{background:#0b3644}
+body.dark-mode footer{background:#1e293b;color:#f8fafc}
+.active-link{font-weight:bold;color:#38bdf8 !important}
+
+/* Sidebar link styles */
+#sidebar a{color:white;text-decoration:none;display:block;padding:8px 6px;border-radius:4px;}
+#sidebar a i{margin-right:8px}
+#sidebar a:hover{background:rgba(255,255,255,0.06)}
+#sidebar a.active-link{background:rgba(255,255,255,0.08);color:#ffffff !important}
+#sidebar ul{padding:0;margin:0}
+
+/* NOUVEAU STYLE POUR LA SECTION D'ACCUEIL */
+.home-link {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 6px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: background 0.3s;
+  font-weight: bold;
+}
+.home-link i {
+  margin-right: 12px;
+  color: #38bdf8; /* Couleur cyan adaptée */
+  font-size: 1.2em;
+}
+.home-link:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* NOUVEAU STYLE POUR LES ICÔNES D'ILLUSTRATION DANS LES CARTES */
+.card-icon {
+    font-size: 30px; 
+    color: #0b7285; /* Couleur de la barre latérale */
+}
+
+
+@media (max-width:900px){
+  #sidebar{transform:translateX(-260px)}
+  #sidebar.open{transform:translateX(0)}
+  .container{margin-left:20px;padding-top:100px}
+  footer{margin-left:20px}
+}
+</style>
+</head>
+<body>
+
+<div class="login-modal" id="login-modal">
+    <div class="login-box">
+        <h2 style="color: #0b7285; margin-bottom: 20px;">Accès au Cours</h2>
+        <input type="email" id="login-email" placeholder="username(admin@gmail.com)" required>
+        <input type="password" id="login-password" placeholder="pw(admin)" required>
+        <button onclick="login()">Se Connecter</button>
+        <p id="error-message">Identifiants incorrects. Veuillez réessayer.</p>
+    </div>
+</div>
+
+<div id="main-wrapper">
+
+<nav style="width:98%;background:#0b7285;color:white;padding:12px 20px;font-size:20px;font-weight:bold;position:fixed;top:0;left:0;z-index:1000; display: flex; justify-content: space-between; align-items: center;">
+    
+    <div style="display: flex; align-items: center;">
+        <div style="font-size: 0.8em; padding: 5px 10px; background-color: #083344; border-radius: 4px; margin-right: 20px;">
+            P-TIC & P-EEA
+        </div>
+        <div>SQL – Langage d'Interrogation des BD (Chap. 5)</div>
+    </div>
+    
+    <div id="user-info" style="font-size: 16px; font-weight: normal; display: flex; align-items: center;">
+        
+        <a id="teacher-link" 
+           href="teacher.php" 
+           style="color: white; text-decoration: none; margin-right: 20px; font-size: 14px; font-weight: bold; padding: 5px 10px; border: 1px solid #38bdf8; border-radius: 4px; transition: background-color 0.2s; display: none;" 
+           onmouseover="this.style.backgroundColor='#085f6e'" 
+           onmouseout="this.style.backgroundColor='transparent'">
+            <i class="fas fa-chalkboard-teacher"></i> Espace Enseignant
+        </a>
+        
+        <img id="nav-user-photo" src="" alt="Photo de profil" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; margin-right: 10px; display: none;">
+        
+        <span id="nav-user-email" style="margin-right: 15px; font-weight: bold; color: #38bdf8;"></span>
+        
+        <button onclick="logout()" style="padding: 5px 10px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">
+            <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+        </button>
+    </div>
+
+</nav>
+<button onclick="toggleSidebar()" style="position:fixed;top:70px;left:10px;z-index:1100;padding:8px 14px;background:#0b7285;color:white;border:none;border-radius:6px;cursor:pointer;">Menu</button>
+<button onclick="toggleDark()" style="position:fixed;top:70px;right:10px;z-index:1100;padding:8px 14px;background:#0b7285;color:white;border:none;border-radius:6px;cursor:pointer;">🌙</button>
+
+<div id="sidebar" style="position:fixed;transform:translateX(0px);transition:0.3s;top:60px;left:0;width:230px;height:100%;background:#134e63;color:white;padding:20px;overflow-y:auto;z-index:900;">
+<h2 style="font-size:18px;margin-top:0;color:white;">Menu</h2>
+<ul style="list-style:none;padding-left:0;line-height:1.8;font-size:15px;">
+<li><a href="#home"><i class="fa-solid fa-home"></i> Accueil</a></li> 
+<li><a href="#objectifs"><i class="fa-solid fa-bullseye"></i> Objectifs du cours</a></li>
+<li><a href="#plan"><i class="fa-solid fa-list"></i> Plan du cours</a></li>
+<li><a href="#s1"><i class="fa-solid fa-file"></i> Section 1 — Intro à SQL</a></li>
+<li><a href="#s2"><i class="fa-solid fa-database"></i> Section 2 — DDL (Définition)</a></li>
+<li><a href="#s3"><i class="fa-solid fa-table"></i> Section 3 —  — Catégorie des commandes Sql</a></li>
+<li><a href="#s4"><i class="fa-solid fa-calculator"></i> Section 4 — Fonctions d'Agrégation</a></li>
+<li><a href="#s5"><i class="fa-solid fa-link"></i> Section 5 — Jointures (INNER/LEFT)</a></li>
+<li><a href="#cas"><i class="fa-solid fa-book"></i> Cas pratique</a></li>
+<li><a href="#conclusion"><i class="fa-solid fa-flag-checkered"></i> Conclusion</a></li>
+<li><a href="#annexe"><i class="fa-solid fa-file-circle-plus"></i> Annexe</a></li>
+<li><a href="#quiz"><i class="fa-solid fa-graduation-cap"></i> Quiz d'évaluation</a></li>
+</ul>
+
+
+    
+</div>
+
+<div class="container" style="margin-left:260px;padding-top:80px;">
+<div class="container">
+<section id="home" class="card" style="text-align: center; background: linear-gradient(135deg, #0b7285, #084d57); color: white; scroll-margin-top: 70px;">
+    <div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+        <img src="img/logo_sql.jpeg" alt="Logo SQL" style="width: 240px; height: 180px; margin-bottom: 20px; object-fit: cover;">
+        <h1 style="font-size: 3em; margin-bottom: 10px; color: white;">LE LANGAGE SQL</h1>
+        <p style="font-size: 1.2em; margin-bottom: 30px; opacity: 0.9;">CHAPITRE 5 - Interrogation et Manipulation des Bases de Données</p>
+                
+        <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 10px; backdrop-filter: blur(10px);">
+            <h2 style="color: white; margin-bottom: 25px; scroll-margin-top: 0;">Plan Détaillé du Cours</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; text-align: left;">
+                <a href="#s1" class="home-link">
+                    <i class="fa-solid fa-file-code"></i>
+                    <span> Section 1 — Introduction et Structure</span>
+                </a>
+                
+                <a href="#s2" class="home-link">
+                    <i class="fa-solid fa-database"></i>
+                    <span>Section 2 — DDL (Définition des données)</span>
+                </a>
+                
+                <a href="#s3" class="home-link">
+                    <i class="fa-solid fa-table"></i>
+                    <span>Section 3 —  — Catégorie des commandes Sql</span>
+                </a>
+                
+                <a href="#s4" class="home-link">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>Section 4 — Fonctions d'Agrégation</span>
+                </a>
+                
+                <a href="#s5" class="home-link">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Section 5 — Jointures (Relations)</span>
+                </a>
+                
+                <a href="#cas" class="home-link">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Cas pratique (Gestion d'étudiants)</span>
+                </a>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+            <p style="margin: 0; font-size: 0.9em; opacity: 0.8;">
+                <i class="fas fa-user-graduate"></i> Instructeur: <strong>Abdelrahim CHIHA</strong> | 
+                <i class="fas fa-envelope"></i> Contact: <a href="mailto:abdelrahimchiha@gmail.com" style="color: white; text-decoration: underline;">abdelrahimchiha@gmail.com</a> |
+                <i class="fas fa-university"></i> Université | 
+                <i class="fas fa-calendar"></i> 2025
+            </p>
+        </div>
+    </div>
+</section>
+
+<div class="card" id="objectifs">
+    <h2>Objectifs du cours</h2>
+    <div style="text-align: center; margin-bottom: 20px;"><i class="fa-solid fa-bullseye card-icon"></i></div>
+    <p>Ce cours vise à initier les étudiants au langage **SQL (Structured Query Language)**, outil fondamental pour la gestion et l’interrogation des bases de données relationnelles.</p>
+    <h3>À la fin de ce module, les étudiants seront capables de :</h3>
+    <ul>
+        <li>Comprendre la **structure** et les **composantes** d’une base de données SQL.</li>
+        <li>Maîtriser les commandes du DDL pour **définir la structure** des tables.</li>
+        <li>Maîtriser le DML et le DQL pour **manipuler et interroger** efficacement les données.</li>
+        <li>Utiliser les fonctions d’agrégation et les jointures pour **synthétiser et relier** les informations.</li>
+    </ul>
+</div>
+
+<div class="card" id="plan">
+    <h2>Plan du cours</h2>
+    <div style="text-align: center; margin-bottom: 20px;"><i class="fa-solid fa-list-ol card-icon"></i></div>
+    <ul>
+        <li>PARTIE I — Introduction et Commandes de Base (DDL, DML, DQL)</li>
+        <li>PARTIE II — Commandes Avancées (Agrégation et Jointures)</li>
+        <li>PARTIE III — Cas Pratique & Exercices Guidés</li>
+    </ul>
+    <h3>Abréviations Fondamentales</h3>
+    <pre style="line-height: 1.4;">
+SQL: Structured Query Language
+BD: Base de Données (Base de Données Relationnelle - BDR)
+DDL: Data Definition Language (Définition des données)
+DML: Data Manipulation Language (Manipulation des données)
+DQL: Data Query Language (Interrogation des données)
+PK: Primary Key (Clé primaire)
+FK: Foreign Key (Clé étrangère)
+"[  ]": Indique un terme ou une clause facultative
+    </pre>
+</div>
+
+<div class="card" id="s1">
+    <h2>Section 1 — Introduction & Structure de SQL</h2>
+    <div style="text-align: center; margin-bottom: 20px;"><i class="fa-solid fa-file-code card-icon"></i></div>
+    <h3>Qu’est-ce que SQL ?</h3>
+    <p>Le **SQL (Structured Query Language)** est un langage standard et déclaratif conçu pour gérer et manipuler les données dans les systèmes de gestion de bases de données relationnelles (SGBDR).</p>
+    
+    <h3>Importance de SQL</h3>
+    <p>SQL est la pierre angulaire de la gestion de données dans l'industrie. Il est utilisé par toutes les grandes plateformes SGBDR (MySQL, PostgreSQL, Oracle, SQL Server, etc.) et est indispensable pour les ingénieurs, les analystes et les développeurs.</p>
+    
+    <h3>Structure d’une BD SQL (Exemple)</h3>
+    <p>Nous utiliserons l’exemple de la base de données <code>db_etudiants</code> dont le schéma relationnel est le suivant :</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-schema" rows="3" readonly>
+Etudiants( id, nom, email)
+Cours( id , nom_cours, volume_horaire)
+Inscriptions(# id_etudiant , # id_cours , note_ds, note_exam)
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-schema', this)">Copier</button>
+    </div>
+    
+    <div style="text-align: center;">
+        <img src="img/table_etudiant.png" alt="Schéma Relationnel Etudiants Cours Inscriptions" style="width:550px;height:350px;display:block;margin:10px auto;border:1px solid #ccc;">
+    </div>
+    <div style="text-align: center;">
+        <img src="img/table_cours.png" alt="Schéma Relationnel Etudiants Cours Inscriptions" style="width:550px;height:350px;display:block;margin:10px auto;border:1px solid #ccc;">
+    </div>
+    <div style="text-align: center;">
+        <img src="img/table_inscription.png" alt="Schéma Relationnel Etudiants Cours Inscriptions" style="width:550px;height:350px;display:block;margin:10px auto;border:1px solid #ccc;">
+    </div>
+
+    <p class="small">
+        **Clé primaire (PK)** : Colonne ou ensemble de colonnes garantissant l'**unicité** de chaque ligne.<br>
+        **Clé étrangère (FK)** : Colonne faisant référence à une clé primaire d'une autre table, établissant ainsi la **relation** entre les tables.
+    </p>
+</div>
+
+<div class="card" id="s2">
+    <h2>Section 2 — DDL (Data Definition Language) : Définir la Structure</h2>
+    <div style="text-align: center; margin-bottom: 20px;"><i class="fa-solid fa-database card-icon"></i></div>
+    <p>Le DDL est utilisé pour **créer et modifier la structure** des bases de données (BD) et de leurs objets (tables, vues, index).</p>
+
+   
+    
+    <h3>1. CREATE : Créer un objet (BD ou Table).</h3>
+    <p>Exemple 1: Créer une nouvelle Base de Données <code>db_institut</code></p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-create-db" rows="2" readonly>
+CREATE DATABASE db_institut;
+USE db_institut ; -- Sélectionne la BD pour les opérations suivantes
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-create-db', this)">Copier</button>
+    </div>
+    <p>Exemple 2: Créer une nouvelle table <code>Etudiants</code> (Clé Primaire simple)</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-create-table-etudiants" rows="5" readonly>
+CREATE TABLE Etudiants (
+  id INT PRIMARY KEY ,
+  nom VARCHAR(50) NOT NULL,
+  email VARCHAR(100) UNIQUE
+);
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-create-table-etudiants', this)">Copier</button>
+    </div>
+    <p>Exemple 3: Créer la table <code>Inscriptions</code> (Clé Primaire composée et Clé Étrangère)</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-create-table-inscriptions" rows="7" readonly>
+CREATE TABLE Inscriptions (
+  id_etudiant INT,
+  id_cours INT,
+  note_ds FLOAT,
+  note_exam FLOAT,
+  PRIMARY KEY (id_etudiant, id_cours),
+  FOREIGN KEY (id_etudiant) REFERENCES Etudiants(id)
+);
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-create-table-inscriptions', this)">Copier</button>
+    </div>
+
+    <h3>2. ALTER : Modifier la structure d'une table.</h3>
+    <p>Exemple 4: Ajouter une colonne <code>niveau</code> à la table <code>Cours</code></p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-alter-add" rows="2" readonly>
+ALTER TABLE Cours
+ADD niveau VARCHAR(10);
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-alter-add', this)">Copier</button>
+    </div>
+    <p>Exemple 5: Supprimer la colonne <code>niveau_etudes</code> de la table <code>Cours</code></p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-alter-drop" rows="2" readonly>
+ALTER TABLE Cours
+DROP COLUMN niveau_etudes;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-alter-drop', this)">Copier</button>
+    </div>
+
+    <h3>3. DROP/RENAME : Supprimer ou Renommer.</h3>
+    <p>Exemple 6: Supprimer la table <code>Etudiants</code>.</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-drop-table" rows="1" readonly>
+DROP TABLE Etudiants ;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-drop-table', this)">Copier</button>
+    </div>
+    <p>Exemple 7: Renommer la table <code>Etudiants</code> en <code>Students</code>.</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-rename" rows="1" readonly>
+RENAME TABLE Etudiants TO Students;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-rename', this)">Copier</button>
+    </div>
+</div>
+
+<div class="card" id="s3">
+    <h2>Section 3 — Catégorie des commandes Sql : Manipulation et Interrogation</h2>
+    <div style="text-align: center; margin-bottom: 20px;"><i class="fa-solid fa-table card-icon"></i></div>
+    <p>Le **DML** (INSERT, UPDATE, DELETE) modifie les données. Le **DQL** (SELECT) les récupère.</p>
+    
+    <div style="text-align: center;">
+        <img src="img/sql_commands_family.jpg" alt="DML vs DQL Insert Update Delete Select" style="display:block;margin:10px auto;border:1px solid #ccc;">
+    </div>
+    
+    <h3>1. DML : Insertion, Modification et Suppression de données</h3>
+    
+    <h4>A. INSERT : Ajouter de nouvelles lignes.</h4>
+    <p>Exemple 1 : Insertion d'un étudiant avec toutes les valeurs spécifiées.</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-insert-one" rows="2" readonly>
+INSERT INTO Etudiants (id, nom, email)
+VALUES (1, 'Ahmed', 'ahmed@mail.com');
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-insert-one', this)">Copier</button>
+    </div>
+    <p>Exemple 2 : Insertion multiple de plusieurs étudiants.</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-insert-many" rows="5" readonly>
+INSERT INTO Etudiants (nom, email)
+VALUES
+('Amel', 'amel@mail.com'),
+('Olfa', 'holfa@mail.com'),
+('Ben Ali', 'benali@mail.com') ;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-insert-many', this)">Copier</button>
+    </div>
+
+    <h4>B. UPDATE : Modifier des données existantes.</h4>
+    <p>Exemple 3 : Mise à jour de l’email de l’étudiant d’id=1.</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-update" rows="3" readonly>
+UPDATE Etudiants
+SET email = 'ahmed@issat.tn'
+WHERE id = 1;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-update', this)">Copier</button>
+    </div>
+
+    <h4>C. DELETE : Supprimer des lignes.</h4>
+    <p>Exemple 4 : Suppression de la ligne qui correspond à l’étudiant d’id=1.</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-delete" rows="2" readonly>
+DELETE FROM Etudiants
+WHERE id = 1;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-delete', this)">Copier</button>
+    </div>
+
+    <h3>2. DQL : Requêtes de Sélection (SELECT)</h3>
+    
+    <h4>A. Sélection simple et distincte.</h4>
+    <p>Exemple 5: Extraire toutes les colonnes (*) de la table <code>Cours</code>.</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-select-all" rows="1" readonly>
+SELECT * FROM Cours;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-select-all', this)">Copier</button>
+    </div>
+    <p>Exemple 6: Afficher les volumes horaires des cours sans répétition (DISTINCT).</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-select-distinct" rows="1" readonly>
+SELECT DISTINCT volume_horaire FROM Cours;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-select-distinct', this)">Copier</button>
+    </div>
+    
+    <h4>B. Filtrage (WHERE) et Tri (ORDER BY).</h4>
+    <p>Exemple 7: Filtrer les cours dont le volume horaire est supérieur à 12.</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-select-where" rows="3" readonly>
+SELECT nom_cours, volume_horaire
+FROM Cours
+WHERE volume_horaire > 12;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-select-where', this)">Copier</button>
+    </div>
+    <p>Exemple 8: Rechercher les étudiants dont le nom commence par la lettre 'A' (LIKE).</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-select-like" rows="1" readonly>
+SELECT nom, email FROM Etudiants WHERE nom LIKE 'A%';
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-select-like', this)">Copier</button>
+    </div>
+    <p>Exemple 9: Trier tous les étudiants par nom dans l’ordre décroissant (DESC).</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-select-order" rows="1" readonly>
+SELECT * FROM Etudiants ORDER BY nom DESC ;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-select-order', this)">Copier</button>
+    </div>
+</div>
+
+<div class="card" id="s4">
+    <h2>Section 4 — Fonctions d’Agrégation et Groupement</h2>
+    <div style="text-align: center; margin-bottom: 20px;"><i class="fa-solid fa-calculator card-icon"></i></div>
+    <p>Les fonctions d’agrégation (SUM, AVG, COUNT, MAX, MIN) effectuent un **calcul sur un ensemble de lignes** pour retourner une valeur unique.</p>
+    
+    <h3>1. Fonctions d'Agrégation Simples</h3>
+    <p>Exemple 1: Calculer le total du volume horaire de tous les cours (<code>SUM</code>).</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-agg-sum" rows="1" readonly>
+SELECT SUM(volume_horaire) AS TotalVolume FROM Cours;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-agg-sum', this)">Copier</button>
+    </div>
+    <p>Exemple 2: Compter le nombre d'étudiants inscrits dans au moins un cours (<code>COUNT</code>).</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-agg-count" rows="1" readonly>
+SELECT COUNT(DISTINCT id_etudiant) AS NbEtudiantsInscrits FROM Inscriptions;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-agg-count', this)">Copier</button>
+    </div>
+
+    <h3>2. Groupement des Résultats (GROUP BY)</h3>
+    <p>La clause **<code>GROUP BY</code>** est utilisée pour regrouper les lignes ayant les mêmes valeurs dans une colonne, permettant aux fonctions d'agrégation d'opérer sur chaque groupe.</p>
+    
+    <p>Exemple 3: Calculer la note moyenne par cours.</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-group-by" rows="4" readonly>
+SELECT id_cours, AVG(note_exam) AS MoyenneExam
+FROM Inscriptions
+GROUP BY id_cours;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-group-by', this)">Copier</button>
+    </div>
+
+    <h3>3. Filtrage sur les Groupes (HAVING)</h3>
+    <p>La clause **<code>HAVING</code>** filtre les résultats du regroupement après l'agrégation, contrairement à <code>WHERE</code> qui filtre les lignes avant l'agrégation.</p>
+    <p>Exemple 4: Afficher uniquement les cours dont la note moyenne est supérieure à 15.</p>
+    <div class="code-container">
+        <textarea class="code-block" id="sql-having" rows="5" readonly>
+SELECT id_cours, AVG(note_exam) AS MoyenneExam
+FROM Inscriptions
+GROUP BY id_cours
+HAVING AVG(note_exam) > 15;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-having', this)">Copier</button>
+    </div>
+</div>
+
+<div class="card" id="s5">
+    <h2>Section 5 — Jointures (Relier les Tables)</h2>
+    <div style="text-align: center; margin-bottom: 20px;"><i class="fa-solid fa-link card-icon"></i></div>
+    <p>Les **Jointures** (JOIN) permettent de combiner les colonnes de deux ou plusieurs tables en se basant sur une colonne de relation (généralement la Clé Étrangère).</p>
+
+    <h3>1. INNER JOIN (Jointure Interne)</h3>
+    
+    <p>Affiche uniquement les lignes ayant des correspondances dans **les deux tables**.</p>
+    
+    <div style="text-align: center; display: flex; justify-content: space-around;">
+        <img src="img/inner_join.jpeg" alt="Diagramme INNER JOIN (Intersection)" style="display:block;margin:10px;border:1px solid #ccc; width: 45%;">
+    </div>
+    
+    <p>Exemple 1 : Afficher les noms des étudiants avec les cours auxquels ils sont effectivement inscrits.</p>
+    
+    <div class="code-container">
+        <textarea class="code-block" id="sql-inner-join" rows="5" readonly>
+SELECT E.nom AS Nom_Étudiant, C.nom_cours
+FROM Inscriptions Insc
+INNER JOIN Etudiants E ON Insc.id_etudiant = E.id
+INNER JOIN Cours C ON Insc.id_cours = C.id;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-inner-join', this)">Copier</button>
+    </div>
+
+    <h3>2. LEFT (OUTER) JOIN (Jointure Gauche)</h3>
+    
+    <p>Affiche **toutes les lignes de la table de gauche** (première mentionnée) et les correspondances de la table de droite. Les lignes sans correspondance de droite affichent <code>NULL</code>.</p>
+    
+    <div style="text-align: center; display: flex; justify-content: space-around;">
+        <img src="img/left_join.png" alt="Diagramme INNER JOIN (Intersection)" style="display:block;margin:10px;border:1px solid #ccc; width: 45%;">
+    </div>    
+    <p>Exemple 2 : Afficher tous les étudiants, même ceux qui n'ont pris aucun cours.</p>
+    
+    <div class="code-container">
+        <textarea class="code-block" id="sql-left-join" rows="3" readonly>
+SELECT E.nom, C.nom_cours
+FROM Etudiants E
+LEFT JOIN Inscriptions Insc ON E.id = Insc.id_etudiant;
+        </textarea>
+        <button class="copy-button" onclick="copyCode('sql-left-join', this)">Copier</button>
+    </div>
+    
+    <p class="small">
+        **Autres jointures :** **RIGHT JOIN** (similaire au LEFT JOIN, mais pour la table de droite) et **FULL JOIN** (toutes les lignes des deux tables).
+    </p>
+</div>
+
+
+
+<div class="card" id="quiz"> <h2><i class="fa-solid fa-graduation-cap card-icon"></i> Quiz d'évaluation</h2>
+<div id="quiz-container">
+    <p>C'est ici que le quiz sera généré.</p>
+</div>
+
+<button id="start-quiz-button" onclick="buildQuiz()" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+    Démarrer le Quiz
+</button>
+
+<button id="submit-quiz-button" onclick="submitQuiz()" style="padding: 10px 20px; background-color: #0b7285; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; display: none;">
+    Soumettre les Réponses
+</button>
+
+<div id="results" style="margin-top: 20px; padding: 15px; border-radius: 4px; background-color: #e9ecef; display: none; font-weight: bold;">
+    </div>
+
+</div>
+
+</div> <footer style="margin-left:260px;padding:10px 20px;background:#0b7285;color:white;text-align:center;position:fixed;bottom:0;width:calc(100% - 260px);z-index:900;">
+<p class="small" style="margin:0;">&copy; 2025 - Université</p>
+</footer>
+
+</div> <script>
+// --- FONCTIONNALITÉ COPIER LE CODE ---
+/**
+ * Copie le contenu du textarea spécifié et change le texte du bouton.
+ * @param {string} elementId L'ID du textarea à copier.
+ * @param {HTMLElement} buttonElement Le bouton déclencheur.
+ */
+window.copyCode = async function(elementId, buttonElement) {
+    const codeElement = document.getElementById(elementId);
+    
+    // Sélectionner le contenu (nécessaire dans certains navigateurs)
+    codeElement.select();
+    codeElement.setSelectionRange(0, 99999); // Pour les mobiles
+
+    try {
+        await navigator.clipboard.writeText(codeElement.value);
+        
+        // Mettre à jour le texte du bouton pour confirmer la copie
+        const originalText = buttonElement.textContent;
+        buttonElement.textContent = 'Copié !';
+        
+        // Rétablir le texte après 2 secondes
+        setTimeout(() => {
+            buttonElement.textContent = originalText;
+        }, 2000);
+        
+    } catch (err) {
+        console.error('Erreur de copie:', err);
+        alert('Impossible de copier le code.');
+    }
+}
+
+
+// --- CONFIGURATION ---
+const apiEndpoint = 'api/login.php';
+const updateScoreEndpoint = 'api/update_score.php';
+
+// --- ÉTAT DE LA SESSION (Chargé depuis localStorage au démarrage) ---
+let currentUserEmail = localStorage.getItem('sessionUserEmail');
+let currentUserPoints = parseInt(localStorage.getItem('sessionUserPoints')) || 0;
+let currentUserPhoto = localStorage.getItem('sessionUserPhoto');
+let isAdmin = currentUserEmail === 'admin@gmail.com'; 
+
+
+// --- UTILITAIRES ---
+// Fonction de bascule de la barre latérale pour les petits écrans
+window.toggleSidebar = function() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('open');
+};
+
+// Fonction de bascule du mode sombre
+window.toggleDark = function() {
+    document.body.classList.toggle('dark-mode');
+    // Sauvegarder la préférence de mode sombre
+    if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('darkMode', 'enabled');
+    } else {
+        localStorage.setItem('darkMode', 'disabled');
+    }
+};
+
+/**
+ * Gère l'affichage du lien "Espace Enseignant" dans la navbar en fonction du statut administrateur.
+ */
+function updateTeacherLinkDisplay() {
+    const teacherLink = document.getElementById('teacher-link');
+    if (teacherLink) {
+        teacherLink.style.display = isAdmin ? 'inline-block' : 'none';
+    }
+}
+
+// --- GESTION DE LA CONNEXION/DÉCONNEXION ---
+/**
+ * Tente de connecter l'utilisateur en appelant le script PHP côté serveur.
+ */
+window.login = async function() {
+    const emailInput = document.getElementById('login-email').value;
+    const passwordInput = document.getElementById('login-password').value;
+    const errorMessage = document.getElementById('error-message');
+    const loginModal = document.getElementById('login-modal');
+    const mainWrapper = document.getElementById('main-wrapper');
+    const navUserEmail = document.getElementById('nav-user-email');
+    const userPhotoElement = document.getElementById('nav-user-photo');
+
+    // Retirer la classe js-loaded pendant la tentative de connexion
+    document.body.classList.remove('js-loaded');
+
+    try {
+        const response = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: emailInput, password: passwordInput })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+
+        const apiResult = await response.json();
+
+        if (apiResult.success) {
+            currentUserEmail = apiResult.user.USERNAME;
+            currentUserPoints = apiResult.user.TOTPOINTS;
+            currentUserPhoto = apiResult.user.PHOTO;
+
+            // Mise à jour du statut administrateur
+            isAdmin = currentUserEmail === 'admin@gmail.com'; 
+
+            // Sauvegarde des informations de session dans le stockage local
+            localStorage.setItem('sessionUserEmail', currentUserEmail);
+            localStorage.setItem('sessionUserPoints', currentUserPoints);
+            localStorage.setItem('sessionUserPhoto', currentUserPhoto);
+            
+            errorMessage.style.display = 'none';
+
+            // Mise à jour de l'interface
+            navUserEmail.textContent = currentUserEmail + ` (Total: ${currentUserPoints} pts)`;
+            if (userPhotoElement && currentUserPhoto) {
+                userPhotoElement.src = currentUserPhoto;
+                userPhotoElement.style.display = 'inline-block';
+            }
+
+            // Mettre à jour la visibilité du lien Enseignant
+            updateTeacherLinkDisplay();
+            
+            // Masquer le modal et afficher le contenu principal
+            loginModal.style.display = 'none';
+            mainWrapper.style.display = 'block';
+
+        } else {
+            errorMessage.textContent = apiResult.message || "Identifiants incorrects. Veuillez réessayer.";
+            errorMessage.style.display = 'block';
+        }
+
+    } catch (error) {
+        console.error('Erreur de connexion:', error);
+        errorMessage.textContent = "Erreur de connexion au serveur. Veuillez vérifier l'API.";
+        errorMessage.style.display = 'block';
+    } finally {
+        // POINT CRUCIAL ANTI-FLASH : Rendre visible le conteneur final choisi
+        document.body.classList.add('js-loaded');
+    }
+};
+
+/**
+ * Déconnecte l'utilisateur et réinitialise la session.
+ */
+window.logout = function() {
+    // Suppression des informations de session
+    localStorage.removeItem('sessionUserEmail');
+    localStorage.removeItem('sessionUserPoints');
+    localStorage.removeItem('sessionUserPhoto');
+    localStorage.removeItem('darkMode');
+
+    // Réinitialisation des variables globales
+    currentUserEmail = null;
+    currentUserPoints = 0;
+    currentUserPhoto = null;
+    isAdmin = false; 
+
+    // Rechargement de la page pour revenir à l'écran de connexion
+    window.location.reload(); 
+    
+    // Nettoyer l'interface pour le cas où le rechargement serait bloqué
+    const loginModal = document.getElementById('login-modal');
+    const mainWrapper = document.getElementById('main-wrapper');
+    const navUserEmail = document.getElementById('nav-user-email');
+    const userPhotoElement = document.getElementById('nav-user-photo');
+    
+    if (loginModal) loginModal.style.display = 'flex';
+    if (mainWrapper) mainWrapper.style.display = 'none';
+    if (navUserEmail) navUserEmail.textContent = '';
+    
+    // Réinitialiser le statut
+    if (userPhotoElement) {
+        userPhotoElement.src = '';
+        userPhotoElement.style.display = 'none';
+    }
+    
+    // Masquer le lien Enseignant
+    updateTeacherLinkDisplay();
+    document.body.classList.remove('dark-mode');
+    document.body.classList.remove('js-loaded');
+}
+
+// ----------------------------------------------------------------------------------
+// --- GESTION DE LA CHARGE DE PAGE ET DE LA RESTAURATION DE SESSION (ANTI-FLASH) ---
+// ----------------------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+    const loginModal = document.getElementById('login-modal');
+    const mainWrapper = document.getElementById('main-wrapper');
+    const navUserEmail = document.getElementById('nav-user-email');
+    const userPhotoElement = document.getElementById('nav-user-photo');
+
+    // Appliquer la préférence de mode sombre au chargement
+    if (localStorage.getItem('darkMode') === 'enabled') {
+        document.body.classList.add('dark-mode');
+    }
+
+    if (currentUserEmail) {
+        // L'utilisateur est connecté (session persistante) : restaurer l'interface
+        loginModal.style.display = 'none';
+        mainWrapper.style.display = 'block';
+        navUserEmail.textContent = currentUserEmail + ` (Total: ${currentUserPoints} pts)`;
+        
+        // Affichage de la photo si elle existe
+        if (userPhotoElement && currentUserPhoto) {
+            userPhotoElement.src = currentUserPhoto;
+            userPhotoElement.style.display = 'inline-block';
+        }
+    } else {
+        // L'utilisateur n'est pas connecté : afficher le modal de connexion
+        mainWrapper.style.display = 'none';
+        loginModal.style.display = 'flex';
+    }
+
+    // Mettre à jour la visibilité du lien après restauration
+    updateTeacherLinkDisplay();
+    
+    // POINT CRUCIAL ANTI-FLASH : Rendre visible le conteneur final choisi
+    document.body.classList.add('js-loaded');
+});
+
+// ----------------------------------------------------------------------------------
+// --- LOGIQUE GÉNÉRALE DE L'APPLICATION (Quiz) ---
+// ----------------------------------------------------------------------------------
+
+// Les questions du quiz (Mise à jour pour SQL)
+const quizQuestions = [
+    { 
+        question: "1. Quel langage est utilisé pour créer, modifier, et supprimer la structure d'une table dans une BD ?", 
+        options: ["DQL", "DML", "DDL"], 
+        answer: "DDL" 
+    },
+    { 
+        question: "2. La commande SQL utilisée pour ajouter de nouvelles lignes de données dans une table est...", 
+        options: ["SELECT", "UPDATE", "INSERT"], 
+        answer: "INSERT" 
+    },
+    { 
+        question: "3. L'opérateur <code>LIKE</code> est utilisé dans une clause <code>WHERE</code> pour...", 
+        options: ["Calculer une moyenne", "Trier les résultats", "Rechercher des motifs dans les chaînes de caractères"], 
+        answer: "Rechercher des motifs dans les chaînes de caractères" 
+    },
+    { 
+        question: "4. Quelle fonction d'agrégation permet de connaître le nombre d'enregistrements?", 
+        options: ["SUM", "COUNT", "AVG"], 
+        answer: "COUNT" 
+    }
+];
+
+const quizContainer = document.getElementById('quiz-container');
+const submitButton = document.getElementById('submit-quiz-button');
+const startButton = document.getElementById('start-quiz-button');
+const resultsContainer = document.getElementById('results');
+
+// Masquer le bouton de soumission au démarrage
+submitButton.style.display = 'none';
+
+function buildQuiz() {
+    // Empêche le démarrage du quiz si l'utilisateur n'est pas connecté
+    if (!currentUserEmail) {
+        alert("Veuillez vous connecter pour démarrer le quiz et enregistrer votre score !");
+        return;
+    }
+
+    // Réinitialiser les couleurs et les messages
+    resultsContainer.style.display = 'none';
+    resultsContainer.innerHTML = '';
+    quizContainer.innerHTML = '';
+
+    quizQuestions.forEach((currentQuestion, questionNumber) => {
+        const output = [];
+        const options = [];
+
+        // Itérer sur les options de la question
+        for (let i = 0; i < currentQuestion.options.length; i++) {
+            // Ajouter un bouton radio HTML
+            options.push(
+                `<label>
+                    <input type="radio" name="question${questionNumber}" value="${currentQuestion.options[i]}">
+                    ${currentQuestion.options[i]}
+                </label>`
+            );
+        }
+
+        // Ajouter la question et ses options à la sortie HTML
+        output.push(
+            `<div class="question" id="q${questionNumber}">
+                <p style="font-weight: bold;">${currentQuestion.question}</p>
+                <div class="options">${options.join('')}</div>
+            </div>`
+        );
+
+        quizContainer.innerHTML += output.join('');
+    });
+    
+    // Masquer Démarrer et afficher Soumettre
+    startButton.style.display = 'none';
+    submitButton.style.display = 'inline-block';
+}
+
+window.submitQuiz = async function() {
+    let numCorrect = 0;
+
+    // 1. Calculer le score
+    quizQuestions.forEach((currentQuestion, questionNumber) => {
+        const questionDiv = document.getElementById(`q${questionNumber}`);
+        const selector = `input[name=question${questionNumber}]:checked`;
+        const userAnswerElement = questionDiv.querySelector(selector);
+        const userAnswer = userAnswerElement ? userAnswerElement.value : '';
+
+        // Vérifier la réponse
+        if (userAnswer === currentQuestion.answer) {
+            numCorrect++;
+            questionDiv.style.border = '2px solid #28a745'; // Vert pour correct
+        } else {
+            questionDiv.style.border = '2px solid #dc3545'; // Rouge pour incorrect
+            // Optionnel : afficher la bonne réponse
+            const allOptions = questionDiv.querySelectorAll('label');
+            allOptions.forEach(label => {
+                if (label.querySelector('input').value === currentQuestion.answer) {
+                    label.style.fontWeight = 'bold';
+                    label.style.color = '#28a745';
+                }
+            });
+        }
+    });
+
+    // 2. Mettre à jour le score si l'utilisateur est connecté
+    let message_db = '';
+    if (currentUserEmail) {
+        try {
+            const response = await fetch(updateScoreEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: currentUserEmail, score: numCorrect })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+
+            const apiResult = await response.json();
+            
+            if (apiResult.success) {
+                 // Mise à jour de l'état local et du stockage
+                 currentUserPoints = numCorrect; 
+                 localStorage.setItem('sessionUserPoints', currentUserPoints);
+                 
+                 // Mise à jour en temps réel de l'affichage dans la barre de navigation
+                 const navUserEmail = document.getElementById('nav-user-email');
+                 navUserEmail.textContent = currentUserEmail + ` (Total: ${currentUserPoints} pts)`; 
+                 
+                 message_db = `<br>Votre score (**${numCorrect} pts**) a été mis à jour dans la base de données MySQL.`;
+            } else {
+                 throw new Error(apiResult.message);
+            }
+
+        } catch (error) {
+            console.error('Erreur de mise à jour:', error);
+            message_db = `<br><span style="color: red;">Erreur de connexion au serveur (mise à jour du score échouée).</span>`;
+        }
+    } else {
+         message_db = `<br>Connectez-vous pour enregistrer votre score.`;
+    }
+
+    // 3. Affichage des résultats
+    resultsContainer.style.display = 'block';
+    resultsContainer.innerHTML = `Score : ${numCorrect} sur ${quizQuestions.length}.` + message_db;
+    
+    // Désactiver les boutons radio
+    quizContainer.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.disabled = true;
+    });
+
+    // Masquer Soumettre et afficher Recommencer
+    submitButton.style.display = 'none';
+    startButton.style.display = 'inline-block';
+    startButton.textContent = 'Recommencer le Quiz';
+}
+</script>
+</body>
+</html>
